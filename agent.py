@@ -52,9 +52,14 @@ class DQNAgent:
         m, index = torch.max(q, 1)
         action = index.item()
 
+
+
+
         grads = torch.zeros([112, 64], device="cpu", requires_grad=False).numpy()
 
         grads *= 254
         grads = grads.astype(np.int8)
+
+
 
         return action, grads.transpose((1, 0))

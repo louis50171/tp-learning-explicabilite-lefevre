@@ -58,18 +58,45 @@ def test(model, device, test_loader):
     for data, target in test_loader:
         data, target = data.to(device), target.to(device)
 
+        data.requires_grad = True
         output = model(data)
 
-        data = data.astype(np.int8)
+        one_hot = torch.FloatTensor(1, 10).zero_().to(device)
+        one_hot[0][target] = 1
 
+        output.backward(gradient=one_hot)
+
+        grads = data.grad.clone()
+        grads.squeeze_(0)
+        grads = grads.permute(1,2,0)
+
+        grads = np.amax(grads.cpu().numpy(), axis=2)
+
+        # Normalisation
+        grads -= grads.min()
+        grads /= grads.max()
+        grads *= 254
+        # converstion vers image
+        grads = grads.astype(np.int8)
         saliency = Image.fromarray(grads, 'L')
         saliency.save("images/saliency_" + str(i) + ".jpg")
 
-        grads = format_saliency(saliency)
+        data.detach_().squeeze_()
+        data = data.cpu().numpy()
+        data -= data.min()
+        data /= data.max()
+        data *= 254
+        data = data.astype(np.int8)
+        inp = Image.fromarray(data, 'L')
+        inp.save("images/input_" + str(i) + ".jpg")
 
+        grads = format_saliency(saliency)
         imgs.append(merge_img(data, grads, i))
 
         i += 1
+
+        if i > 0:
+            break
 
 
 def main():

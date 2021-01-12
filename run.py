@@ -54,6 +54,8 @@ def run():
             # TODO: Change this function to return a correct grad
             best_action_index, grads = agent.get_best_action_wGrad(state)
 
+            
+
             env.game.make_action(agent.actions[best_action_index], args.frame_repeat)
             state = np.squeeze(state)
 
